@@ -7,10 +7,22 @@
 
 #include "sys/mman.h"
 #include "stdio.h"
+#include "types.h"
 
 #define HEADER_SIZE sizeof(struct section_header)
-#define HEAP_START ((void*)0x04040000)
 #define SECTION_SIZE 8192
+
+struct section_region {
+    struct section_header header;
+    struct section_region *next;
+};
+
+struct section_header {
+    size_t free_space;
+    section_off first_free_cell;
+    section_off last_free_cell; 
+    file_off section_addr; // offset from file start
+};
 
 void* init_section_header(FILE* fp);
 int delete_section_header(void *sp);
