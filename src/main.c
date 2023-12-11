@@ -1,20 +1,32 @@
+#include "tests/tests.h"
+#include <fcntl.h>
 #include <stdio.h>
-#include "file/file_interaction.h"
-#include <section/section_header.h>
+#include <sys/stat.h>
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
 
     if (argc > 1) {
-        FILE *fp;
+        int fd = open("file.bin", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
 
-        enum open_file_status open_status = open_file(&fp, argv[1], "rwb");
-        if (open_status == OPEN_FAILED) {
-            printf("file hasn't been opened.. \n");
-            return OPEN_FAILED;
+        struct stat sb;
+        if (fstat(fd, &sb) == -1) {
+            printf("couldn't get file size\n");
+            return -1;
         }
 
-        struct File *f = init_file(fp);
+        struct file *f;
 
+        if (sb.st_size == 0) {
+            f = init_file(fd);
+            printf("file created\n");
+        } else {
+            f = read_file(fd);
+            printf("file was read\n");
+        }
+
+        update_person_object_test(f);
+
+        del_file(f);
     }
     return 0;
 }

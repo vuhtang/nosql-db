@@ -1,8 +1,63 @@
-#include "user.h"
-#include "util.h"
-#include "file.h"
+#include "user/user.h"
 
-status user_add_entity(struct File *file, struct Object *obj) {
-    file_off file_addr;
-    return file_add_entity(file, obj, &file_addr);
+enum status user_add_object(struct file *file, struct object *obj) {
+
+    if (file->first_region && file_find_siblings_on_layer_by_key(file, obj->key, file->header->root_object_addr) != 0)
+        return ERROR;
+
+    return file_add_entity(obj, file, 0, 0, false);
+}
+
+void user_read_object_property(struct file *file, struct string *path, struct query_result *res) {
+    struct query q = {};
+    create_query(path, &q);
+
+    file_read(file, &q, res);
+
+    free_query_object_path(&q);
+}
+
+enum value_type value_type_from_query_value_type(enum query_value_type type) {
+    switch (type) {
+        case Q_VAL_BOOL:
+            return VAL_BOOL;
+        case Q_VAL_FLOAT:
+            return VAL_FLOAT;
+        case Q_VAL_INT32:
+            return VAL_INT32;
+        case Q_VAL_STRING:
+            return VAL_STRING;
+        default:
+            return VAL_BOOL;
+    }
+}
+
+enum status user_modify_object_property(struct file *file, struct string *path, union raw_value value, enum query_value_type type) {
+    struct query q = {};
+    create_query(path, &q);
+
+    struct query_condition condition = {};
+    create_query_condition(value, type, &condition, SET_VAL);
+
+    file_off obj_addr = -1;
+    enum status status = file_find_obj_addr(file, &q, &obj_addr);
+    if (status == -1 || obj_addr == -1)
+        return ERROR;
+
+    enum value_type val_type = value_type_from_query_value_type(type);
+    file_update_obj_value(file, obj_addr, value, val_type);
+
+    return OK;
+}
+
+void user_delete_object(struct file *file, struct string *path) {
+    struct query q = {};
+    create_query(path, &q);
+
+    file_off obj_addr = 0;
+    enum status status = file_find_obj_addr(file, &q, &obj_addr);
+    if (status == ERROR || obj_addr == 0)
+        return;
+
+    file_delete_object(file, obj_addr);
 }

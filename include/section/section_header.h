@@ -1,21 +1,16 @@
-//
-// Created by Иван Варюхин on 08.10.2023.
-//
-
 #ifndef LLP_SECTION_HEADER_H
 #define LLP_SECTION_HEADER_H
 
 #include "sys/mman.h"
+#include "sys/types.h"
 #include "stdio.h"
-#include "types.h"
+#include "memory.h"
+#include "types/types.h"
+#include "file/file.h"
 
-#define HEADER_SIZE sizeof(struct section_header)
-#define SECTION_SIZE 8192
+#define SECTION_SIZE 16384
 
-struct section_region {
-    struct section_header header;
-    struct section_region *next;
-};
+struct file;
 
 struct section_header {
     size_t free_space;
@@ -24,7 +19,21 @@ struct section_header {
     file_off section_addr; // offset from file start
 };
 
-void* init_section_header(FILE* fp);
-int delete_section_header(void *sp);
+struct section_service_header {
+    size_t free_space;
+};
 
-#endif//LLP_SECTION_HEADER_H
+struct section_region {
+    struct section_header *header;
+    struct section_region *next;
+};
+
+struct section_region *section_init();
+void add_service_section(struct file *file);
+void add_new_section(struct file *file);
+void sync_file_header(struct file *file);
+struct file_header_entity section_read_fhe(int fd);
+void section_read_region_header(file_off section_addr, struct file *file, struct section_header *header);
+void sync_section_header_in_file_struct(struct file *file, struct section_header *header);
+
+#endif
