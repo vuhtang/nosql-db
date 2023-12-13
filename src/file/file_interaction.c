@@ -223,7 +223,7 @@ void file_update_obj_value(struct file *file, file_off addr, union raw_value val
 
     if (type == VAL_STRING) {
 
-        struct string *key = init_string(updated_entity.key_size);
+        struct string *key = init_string("", updated_entity.key_size);
         union raw_value old_value = {};
         updated_entity.val_size = value.string.len;
         section_find_entity_with_values(file, addr, &key, &old_value);

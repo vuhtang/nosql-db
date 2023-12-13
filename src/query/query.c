@@ -9,7 +9,7 @@ struct query_result_item *init_query_result_item() {
 }
 
 void add_ope_to_op(struct query_object_path *op, char *ptr) {
-    struct string *str = init_string(strlen(ptr));
+    struct string *str = init_string("", strlen(ptr));
     strcpy(str->ptr, ptr);
 
     struct query_object_path_elem *ope = malloc(sizeof(struct query_object_path_elem));

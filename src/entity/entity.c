@@ -49,7 +49,7 @@ enum object_type obj_type_from_ent_type(enum value_type ent_type) {
 struct object *object_from_entity(struct entity entity, file_off entity_addr, struct string *key, union raw_value value) {
     struct object *o = malloc(sizeof(struct object));
     o->addr = entity_addr;
-    struct string *s = init_string(key->len);
+    struct string *s = init_string("", key->len);
     strcpy(s->ptr, key->ptr);
     o->key = s;
     o->type = obj_type_from_ent_type(entity.val_type);

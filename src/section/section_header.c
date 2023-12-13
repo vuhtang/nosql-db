@@ -64,6 +64,7 @@ void sync_file_header(struct file *file) {
 void add_service_section(struct file *file) {
     ftruncate(file->header->file_desc, SECTION_SIZE);
     file->header->file_size += SECTION_SIZE;
+    sync_file_header(file);
 }
 
 void add_new_section(struct file *file) {

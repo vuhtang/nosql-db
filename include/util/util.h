@@ -14,7 +14,7 @@ enum status {
 };
 
 bool strings_are_equals(struct string *s1, struct string *s2);
-struct string *init_string(size_t len);
+struct string *init_string(char *c , size_t len);
 void free_string(struct string *str);
 void print_status(enum status s);
 

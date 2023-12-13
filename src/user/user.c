@@ -1,9 +1,9 @@
 #include "user/user.h"
 
-enum status user_add_object(struct file *file, struct object *obj) {
+enum status user_insert_object(struct file *file, struct object *obj) {
 
-    if (file->first_region && file_find_siblings_on_layer_by_key(file, obj->key, file->header->root_object_addr) != 0)
-        return ERROR;
+//    if (file->first_region && file_find_siblings_on_layer_by_key(file, obj->key, file->header->root_object_addr) != 0)
+//        return ERROR;
 
     return file_add_entity(obj, file, 0, 0, false);
 }

@@ -21,14 +21,14 @@ section_off get_sectoff_from_fileoff(file_off section_addr, file_off entity_addr
 
 enum status section_add_entity(struct entity *entity, struct string *key, union raw_value *val, file_off *file_off_addr, struct file *file) {
     struct section_region *region = file->first_region;
-    if (!region) return ERROR;
-    while (region->header->free_space < size_of_entity_with_vals(entity))
+    if (!region)
+        return ERROR;
+
+    while (region && region->header->free_space < size_of_entity_with_vals(entity))
         region = region->next;
 
     if (!region)
         return ERROR;
-
-    region->header->free_space = region->header->free_space - size_of_entity_with_vals(entity) - entity->key_size - entity->val_size;
 
     void *p = mmap(NULL, SECTION_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, file->header->file_desc, region->header->section_addr);
     if (!p) return ERROR;
@@ -58,6 +58,8 @@ enum status section_add_entity(struct entity *entity, struct string *key, union 
 
     *file_off_addr = region->header->first_free_cell + region->header->section_addr;
     region->header->first_free_cell += sizeof(struct entity);
+
+    region->header->free_space = region->header->last_free_cell - region->header->first_free_cell;
 
     memcpy(p, region->header, sizeof(struct section_header));
 
@@ -136,7 +138,7 @@ struct entity section_find_entity_with_values(struct file *file, file_off entity
     //read key
     char c[entity.key_size];
     memcpy(c, p + entity.key_ptr, entity.key_size);
-    *key = init_string(entity.key_size);
+    *key = init_string("", entity.key_size);
     strcpy((*key)->ptr, c);
 
     //read val
@@ -146,10 +148,11 @@ struct entity section_find_entity_with_values(struct file *file, file_off entity
     else if (entity.val_type == VAL_STRING) {
         char c1[entity.val_size];
         memcpy(c1, p + entity.val_ptr, entity.val_size);
-        struct string *key1 = init_string(entity.val_size);
-        strcpy(key1->ptr, c1);
-        value->string = *key1;
-        //        value->string = init_string(entity.val_size);
+//        struct string *key1 = init_string("", entity.val_size);
+        value->string = *init_string("", entity.val_size);
+//        strcpy(key1->ptr, c1);
+        strcpy(value->string.ptr, c1);
+//        value->string = *key1;
     } else
         value = NULL;
 
