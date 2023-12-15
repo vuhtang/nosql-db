@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
             printf("file was read\n");
         }
 
-        update_person_object_test(f);
+        mega_test(f);
 
         del_file(f);
     }
