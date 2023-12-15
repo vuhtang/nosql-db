@@ -128,7 +128,7 @@ enum status file_read(struct file *file, const struct query *query, struct query
 
 file_off file_find_prev_sibling(struct file *file, struct entity *entity, file_off obj_addr) {
 
-    if (entityFirstOnLayer(file, entity, obj_addr))
+    if (entity_first_on_layer(file, entity, obj_addr))
         return 0;
 
     file_off ancestor_addr = entity->ancestor_ptr;
@@ -165,7 +165,7 @@ void file_delete_next_siblings(struct file *file, file_off first_obj_addr) {
 
 void delete_entity_without_sibling(struct file *file, struct entity *entity, file_off obj_addr) {
 
-    if (entityFirstOnLayer(file, entity, obj_addr)) {
+    if (entity_first_on_layer(file, entity, obj_addr)) {
         if (entity->ancestor_ptr)
             section_write_child_ptr(entity->ancestor_ptr, 0, file);
         else {
@@ -184,7 +184,7 @@ void delete_entity_without_sibling(struct file *file, struct entity *entity, fil
 
 void delete_entity_with_sibling(struct file *file, struct entity *entity, file_off obj_addr) {
 
-    if (entityFirstOnLayer(file, entity, obj_addr)) {
+    if (entity_first_on_layer(file, entity, obj_addr)) {
         if (entity->ancestor_ptr)
             section_write_child_ptr(entity->ancestor_ptr, entity->sibling_ptr, file);
         else {
@@ -199,7 +199,7 @@ void delete_entity_with_sibling(struct file *file, struct entity *entity, file_o
     section_delete_entity(file, obj_addr);
 }
 
-void file_delete_object(struct file *file, file_off obj_addr) {
+enum status file_delete_object(struct file *file, file_off obj_addr) {
 
     struct entity res_entity = section_find_entity(file, obj_addr);
 
@@ -213,13 +213,15 @@ void file_delete_object(struct file *file, file_off obj_addr) {
     } else {
         delete_entity_with_sibling(file, &res_entity, obj_addr);
     }
+
+    return OK;
 }
 
-void file_update_obj_value(struct file *file, file_off addr, union raw_value value, enum value_type type) {
+enum status file_update_obj_value(struct file *file, file_off addr, union raw_value value, enum value_type type) {
 
     struct entity updated_entity = section_find_entity(file, addr);
     if (updated_entity.val_type != type)
-        return;
+        return ERROR;
 
     if (type == VAL_STRING) {
 
@@ -229,7 +231,7 @@ void file_update_obj_value(struct file *file, file_off addr, union raw_value val
         section_find_entity_with_values(file, addr, &key, &old_value);
 
         file_off prev_sibling = file_find_prev_sibling(file, &updated_entity, addr);
-        bool isChild = entityFirstOnLayer(file, &updated_entity, addr);
+        bool isChild = entity_first_on_layer(file, &updated_entity, addr);
 
         file_off new_addr;
         section_delete_entity(file, addr);
@@ -244,4 +246,6 @@ void file_update_obj_value(struct file *file, file_off addr, union raw_value val
         }
     } else
         section_update_entity_value(file, addr, value, type);
+
+    return OK;
 }

@@ -22,6 +22,11 @@ struct section_region *section_init() {
     return section;
 }
 
+void free_section_region(struct section_region *region) {
+    free(region->header);
+    free(region);
+}
+
 struct file_header_entity section_read_fhe(int fd) {
     struct file_header_entity fhe = {};
     void *p = mmap(NULL, SECTION_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, SERVICE_SECTION_ADDR);
@@ -83,16 +88,3 @@ void add_new_section(struct file *file) {
 
     file_add_section(file, section);
 }
-
-void sync_section_header_in_file_struct(struct file *file, struct section_header *header) {
-    struct section_region *cur_region = file->first_region;
-    while (cur_region->header->section_addr != header->section_addr)
-        cur_region = cur_region->next;
-
-    if (cur_region) {
-        cur_region->header->free_space = header->free_space;
-        cur_region->header->first_free_cell = header->first_free_cell;
-        cur_region->header->last_free_cell = header->last_free_cell;
-    }
-}
-

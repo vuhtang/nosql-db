@@ -29,6 +29,8 @@ enum query_value_type {
 
 enum query_value_cmp_op {
     EQUALS,
+    LESS,
+    BIGGER,
     SET_VAL
 };
 

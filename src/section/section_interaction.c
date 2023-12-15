@@ -10,7 +10,7 @@ enum status memcpy_or_error(void *p1, void *p2, size_t len) {
 }
 
 file_off get_section_addr_from_entity(struct file *file, file_off entity_addr) {
-    file_off first_section_addr = file->first_region->header->section_addr;
+    file_off first_section_addr = SECTION_SIZE;
     file_off obj_section = (entity_addr - first_section_addr) / SECTION_SIZE;
     return first_section_addr + SECTION_SIZE * obj_section;
 }
@@ -20,29 +20,28 @@ section_off get_sectoff_from_fileoff(file_off section_addr, file_off entity_addr
 }
 
 enum status section_add_entity(struct entity *entity, struct string *key, union raw_value *val, file_off *file_off_addr, struct file *file) {
-    struct section_region *region = file->first_region;
-    if (!region)
+    struct heap_elem elem = heap_get_max(file->sections);
+    struct section_region *region = elem.region;
+
+    if (!region || region->header->free_space < size_of_entity_with_vals(entity))
         return ERROR;
 
-    while (region && region->header->free_space < size_of_entity_with_vals(entity))
-        region = region->next;
+    struct section_header *header = malloc(sizeof(struct section_header));
+    memcpy(header, region->header, sizeof(struct section_header));
 
-    if (!region)
-        return ERROR;
-
-    void *p = mmap(NULL, SECTION_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, file->header->file_desc, region->header->section_addr);
+    void *p = mmap(NULL, SECTION_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, file->header->file_desc, header->section_addr);
     if (!p) return ERROR;
 
     //write key
-    section_off key_addr = region->header->last_free_cell - entity->key_size;
+    section_off key_addr = header->last_free_cell - entity->key_size;
     enum status res = memcpy_or_error(p + key_addr, key->ptr, entity->key_size);
     if (res == ERROR) return res;
 
     entity->key_ptr = key_addr;
-    region->header->last_free_cell -= entity->key_size;
+    header->last_free_cell -= entity->key_size;
 
     //write val
-    section_off val_addr = region->header->last_free_cell - entity->val_size;
+    section_off val_addr = header->last_free_cell - entity->val_size;
     if (entity->val_type == VAL_STRING)
         res = memcpy_or_error(p + val_addr, val->string.ptr, entity->val_size);
     else
@@ -50,22 +49,24 @@ enum status section_add_entity(struct entity *entity, struct string *key, union 
     if (res == ERROR) return res;
 
     entity->val_ptr = val_addr;
-    region->header->last_free_cell -= entity->val_size;
+    header->last_free_cell -= entity->val_size;
 
     //write entity struct
-    res = memcpy_or_error(p + region->header->first_free_cell, entity, sizeof(struct entity));
+    res = memcpy_or_error(p + header->first_free_cell, entity, sizeof(struct entity));
     if (res == ERROR) return res;
 
-    *file_off_addr = region->header->first_free_cell + region->header->section_addr;
-    region->header->first_free_cell += sizeof(struct entity);
+    *file_off_addr = header->first_free_cell + header->section_addr;
+    header->first_free_cell += sizeof(struct entity);
 
-    region->header->free_space = region->header->last_free_cell - region->header->first_free_cell;
+    header->free_space = header->last_free_cell - header->first_free_cell;
 
-    memcpy(p, region->header, sizeof(struct section_header));
+    memcpy(p, header, sizeof(struct section_header));
 
     //unmap
     msync(p, SECTION_SIZE, MS_SYNC);
     munmap(p, SECTION_SIZE);
+
+    sync_section_header_in_file_struct(file, header);
 
     return OK;
 }
@@ -148,11 +149,8 @@ struct entity section_find_entity_with_values(struct file *file, file_off entity
     else if (entity.val_type == VAL_STRING) {
         char c1[entity.val_size];
         memcpy(c1, p + entity.val_ptr, entity.val_size);
-//        struct string *key1 = init_string("", entity.val_size);
         value->string = *init_string("", entity.val_size);
-//        strcpy(key1->ptr, c1);
         strcpy(value->string.ptr, c1);
-//        value->string = *key1;
     } else
         value = NULL;
 
@@ -206,7 +204,7 @@ void section_update_entity_value(struct file *file, file_off entity_addr, union 
     munmap(p, SECTION_SIZE);
 }
 
-bool entityFirstOnLayer(struct file *file, struct entity *entity, file_off entity_addr) {
+bool entity_first_on_layer(struct file *file, struct entity *entity, file_off entity_addr) {
     file_off ancestor_ptr = entity->ancestor_ptr;
     if (!ancestor_ptr)
         return file->header->root_object_addr == entity_addr;

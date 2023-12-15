@@ -29,11 +29,11 @@ struct section_region {
 };
 
 struct section_region *section_init();
+void free_section_region(struct section_region *region);
 void add_service_section(struct file *file);
 void add_new_section(struct file *file);
 void sync_file_header(struct file *file);
 struct file_header_entity section_read_fhe(int fd);
 void section_read_region_header(file_off section_addr, struct file *file, struct section_header *header);
-void sync_section_header_in_file_struct(struct file *file, struct section_header *header);
 
 #endif

@@ -1,5 +1,6 @@
 #include "file/file.h"
 #include "section/section_header.h"
+#define HEAP_CAPACITY 8
 
 struct file_header *init_header_struct() {
     return malloc(sizeof(struct file_header));
@@ -7,6 +8,14 @@ struct file_header *init_header_struct() {
 
 struct file *init_file_struct() {
     return malloc(sizeof(struct file));
+}
+
+struct sections_heap *init_sections_heap() {
+    struct sections_heap *heap = malloc(sizeof(struct sections_heap));
+    heap->size = 0;
+    heap->capacity = HEAP_CAPACITY;
+    heap->arr = malloc(sizeof(struct heap_elem) * HEAP_CAPACITY);
+    return heap;
 }
 
 struct file *init_file(int fd) {
@@ -18,6 +27,7 @@ struct file *init_file(int fd) {
 
     struct file *file = init_file_struct();
     file->header = fh;
+    file->sections = init_sections_heap();
 
     add_service_section(file);
     sync_file_header(file);
@@ -30,27 +40,23 @@ void file_read_all_sections(struct file *file) {
     file_off cur_section_addr = SECTION_SIZE;
 
     struct section_region *first_region = malloc(sizeof(struct section_region));
-    file->first_region = first_region;
     struct section_header *header = malloc(sizeof(struct section_header));
-
     section_read_region_header(cur_section_addr, file, header);
     first_region->header = header;
+
+    heap_insert(file->sections, heap_elem_from_region(first_region));
 
     cur_section_addr += SECTION_SIZE;
 
     struct section_region *cur_region = NULL;
-    struct section_region *prev_region = first_region;
 
     while (cur_section_addr < file->header->file_size) {
         cur_region = malloc(sizeof(struct section_region));
         header = malloc(sizeof(struct section_header));
         section_read_region_header(cur_section_addr, file, header);
-        prev_region->next = cur_region;
-        prev_region = cur_region;
+        heap_insert(file->sections, heap_elem_from_region(cur_region));
         cur_section_addr += SECTION_SIZE;
     }
-
-    file->last_region = prev_region;
 }
 
 struct file *read_file(int fd) {
@@ -63,22 +69,18 @@ struct file *read_file(int fd) {
 
     struct file *file = init_file_struct();
     file->header = fh;
+    file->sections = init_sections_heap();
 
     file_read_all_sections(file);
     return file;
 }
 
 void file_add_section(struct file *file, struct section_region *section) {
-    if (!file->first_region) {
-        file->first_region = section;
-        file->last_region = section;
-    } else if (file->first_region == file->last_region) {
-        file->first_region->next = section;
-        file->last_region = section;
-    } else {
-        file->last_region->next = section;
-        file->last_region = section;
-    }
+    heap_insert(file->sections, heap_elem_from_region(section));
+}
+
+void sync_section_header_in_file_struct(struct file *file, struct section_header *header) {
+    heap_update_elem(file->sections, header);
 }
 
 void del_header(struct file_header *header) {
@@ -86,17 +88,16 @@ void del_header(struct file_header *header) {
     free(header);
 }
 
-void del_regions(struct file *file) {
-    struct section_region *reg = file->first_region;
-    while (reg) {
-        struct section_region *tmp = reg->next;
-        free(reg);
-        reg = tmp;
+void del_regions(struct sections_heap *heap) {
+    for (size_t i = 0; i < heap->size; ++i) {
+        free_heap_elem(&(heap->arr)[i]);
     }
+    free(heap->arr);
+    free(heap);
 }
 
-void del_file(struct file *fp) {
-    del_header(fp->header);
-    del_regions(fp);
-    free(fp);
+void del_file(struct file *file) {
+    del_header(file->header);
+    del_regions(file->sections);
+    free(file);
 }
