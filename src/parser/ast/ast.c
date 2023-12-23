@@ -71,8 +71,8 @@ struct ast_node *create_ast_node(enum ast_node_type type, size_t children_count,
 }
 
 void add_ast_node(struct ast_node *node, struct ast_node *child) {
-    struct ast_node **tmp = malloc(sizeof(struct ast_node*) * (node->children_count + 1));
-    memcpy(tmp, node->children, sizeof(struct ast_node*) * node->children_count);
+    struct ast_node **tmp = malloc(sizeof(struct ast_node *) * (node->children_count + 1));
+    memcpy(tmp, node->children, sizeof(struct ast_node *) * node->children_count);
     free(node->children);
     node->children = tmp;
     node->children_count += 1;
