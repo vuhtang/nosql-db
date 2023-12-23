@@ -3,7 +3,6 @@
     #include <stdlib.h>
     #include <stdio.h>
     #include <stdbool.h>
-    #include "ast/ast.h"
     #include "parser.tab.h"
 %}
 
