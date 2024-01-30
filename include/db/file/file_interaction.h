@@ -12,6 +12,8 @@
 enum status file_add_entity(struct object *obj, struct file *file, file_off ancestor_ptr, struct object *prev_sibling, bool isChild);
 enum status file_read(struct file *file, const struct query *query, struct query_result *result);
 file_off file_find_siblings_on_layer_by_key(struct file *file, struct string *key, file_off first_sibling);
+file_off file_find_child_by_ancestor_ptr(struct file *file, file_off ancestor_ptr);
+file_off file_find_last_sibling_on_layer(struct file *file, file_off first_sibling_addr);
 enum status file_find_obj_addr(struct file *file, const struct query *query, file_off *addr);
 enum status file_update_obj_value(struct file *file, file_off addr, union raw_value value, enum value_type type);
 enum status file_delete_object(struct file *file, file_off obj_addr);

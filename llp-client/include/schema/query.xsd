@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <xs:element name="query_type">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="select"/>
+                <xs:enumeration value="insert"/>
+                <xs:enumeration value="update"/>
+                <xs:enumeration value="delete"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="query_body">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="condition_body">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="condition_id" type="xs:string"/>
+                            <xs:element name="condition_elements">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="condition_element">
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                    <xs:element name="id" type="xs:string"/>
+                                                    <xs:element name="operation">
+                                                        <xs:simpleType>
+                                                            <xs:restriction base="xs:string">
+                                                                <xs:enumeration value="eq"/>
+                                                                <xs:enumeration value="less"/>
+                                                                <xs:enumeration value="greater"/>
+                                                            </xs:restriction>
+                                                        </xs:simpleType>
+                                                    </xs:element>
+                                                    <xs:element name="value"/>
+                                                </xs:sequence>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+
+                </xs:element>
+                <xs:element name="entity_body">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="entity_id" type="xs:string"/>
+                            <xs:element name="entity_elements">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="entity_element">
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                    <xs:element name="id" type="xs:string"/>
+                                                    <xs:element name="value"/>
+                                                </xs:sequence>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="represent_body">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="represent_element">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="id" type="xs:string"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>

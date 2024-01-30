@@ -7,5 +7,10 @@ file(GLOB_RECURSE sources CONFIGURE_DEPENDS
         include/*.h
         )
 
+find_package(LibXml2 REQUIRED)
+include_directories(${LIBXML2_INCLUDE_DIR})
+
 add_executable(llp ${sources})
 target_include_directories(llp PRIVATE src include)
+
+target_link_libraries(llp ${LIBXML2_LIBRARIES})

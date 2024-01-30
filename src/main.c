@@ -1,4 +1,6 @@
 #include "db/tests/tests.h"
+#include "serializer/from_xml.h"
+#include "transfer/socket.h"
 #include <fcntl.h>
 #include <stdio.h>
 #include <sys/stat.h>
@@ -23,8 +25,26 @@ int main(int argc, char **argv) {
         printf("file was read\n");
     }
 
-    test_read(f);
+    int server = socket_server();
+    bind_socket(server);
+    listen(server, MAX_CONNECTIONS);
 
+    int client = socket_accept(server);
+
+    int times = 20;
+
+    while (times) {
+        times--;
+        char buffer[MAX_BUFFER_SIZE];
+        receive_from_client(client, buffer);
+        printf("%s\n", buffer);
+        handle_xml_and_return_response_at_buffer(buffer, f);
+        send_to_client(client, buffer);
+    }
+
+
+    close_socket(server);
+    close_socket(client);
     del_file(f);
     return 0;
 }

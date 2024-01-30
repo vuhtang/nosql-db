@@ -73,6 +73,14 @@ file_off file_find_child_by_ancestor_ptr(struct file *file, file_off ancestor_pt
     return ancestor_entity.child_ptr;
 }
 
+file_off file_find_last_sibling_on_layer(struct file *file, file_off first_sibling_addr) {
+    struct entity entity = section_find_entity(file, first_sibling_addr);
+    if (entity.sibling_ptr != 0)
+        return file_find_last_sibling_on_layer(file, entity.sibling_ptr);
+    else
+        return first_sibling_addr;
+}
+
 // path looks like this: "person.location.name"
 // each key in its level must be unique.
 // f.e. the "location" property of the "person" is unique, and the "person" object is also unique.
@@ -125,6 +133,8 @@ enum status file_read(struct file *file, const struct query *query, struct query
 
     return OK;
 }
+
+
 
 file_off file_find_prev_sibling(struct file *file, struct entity *entity, file_off obj_addr) {
 

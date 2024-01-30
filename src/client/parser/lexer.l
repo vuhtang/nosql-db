@@ -7,7 +7,7 @@
 %}
 
 
-id [a-zA-Z]+
+id [a-zA-Z_][a-zA-Z0-9_\.]*
 float [-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?
 integer [-+]?[0-9]+
 boolean true|false

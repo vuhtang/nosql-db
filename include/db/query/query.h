@@ -41,6 +41,11 @@ struct query_result {
     struct query_result_item *first_item;
 };
 
+struct query_repr_list {
+    struct string *property;
+    struct query_repr_list *next;
+};
+
 void create_query(struct string *path, struct query *q);
 void free_query_object_path(struct query *q);
 void create_query_condition(union raw_value value, enum query_value_type type, struct query_condition *condition, enum query_value_cmp_op op);

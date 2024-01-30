@@ -145,6 +145,10 @@ void add_person_object_test(struct file *f, char *person_name) {
     obj0.sibling = 0;
 
     enum status add_res = user_insert_object(f, &obj0);
+    if (add_res == OK)
+        printf("person %s added", person_name);
+    else
+        printf("error");
 }
 void add_person_object_test_with_anc(struct file *f, char *person_name, struct object *ancestor) {
     struct object obj0;

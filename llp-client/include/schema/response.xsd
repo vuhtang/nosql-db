@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="response_body">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="object_id"/>
+                <xs:element name="object_properties">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="object_property">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="id" type="xs:string"/>
+                                        <xs:element name="type">
+                                            <xs:simpleType>
+                                                <xs:restriction>
+                                                    <xs:enumeration value="object"/>
+                                                    <xs:enumeration value="int32"/>
+                                                    <xs:enumeration value="float"/>
+                                                    <xs:enumeration value="boolean"/>
+                                                    <xs:enumeration value="string"/>
+                                                </xs:restriction>
+                                            </xs:simpleType>
+                                        </xs:element>
+                                        <xs:element name="value" type="xs:string"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>

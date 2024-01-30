@@ -3,7 +3,10 @@
 #include <string.h>
 #include <stdbool.h>
 #include "ast/ast.h"
+#include "parser.tab.h"
 
+extern void yyerror (char const *);
+extern int yylex(void);
 }
 
 %union {
@@ -59,10 +62,10 @@
 %%
 
 input:
-	SELECT select_query SEMICOLON { set_root_ast_node($2); $$ = $2; }
-|	INSERT insert_query SEMICOLON { set_root_ast_node($2); $$ = $2; }
-|	UPDATE update_query SEMICOLON { set_root_ast_node($2); $$ = $2; }
-|	DELETE delete_query SEMICOLON { set_root_ast_node($2); $$ = $2; }
+	SELECT select_query SEMICOLON { set_root_ast_node($2); $$ = $2; YYACCEPT; }
+|	INSERT insert_query SEMICOLON { set_root_ast_node($2); $$ = $2; YYACCEPT; }
+|	UPDATE update_query SEMICOLON { set_root_ast_node($2); $$ = $2; YYACCEPT; }
+|	DELETE delete_query SEMICOLON { set_root_ast_node($2); $$ = $2; YYACCEPT; }
 ;
 
 select_query:
@@ -129,7 +132,7 @@ entity_body:
 ;
 
 property_list:
-	property			{ $$ = create_ast_node(AST_NODE_PROPERTY_LIST, 1, $1); }
+|	property			{ $$ = create_ast_node(AST_NODE_PROPERTY_LIST, 1, $1); }
 |	property_list property		{ add_ast_node($1, $2); }
 ;
 
@@ -199,16 +202,16 @@ field: ID COLON VAL_BOOL	{
 
 %%
 
-int main() {
-	yyparse();
-	print_ast_node(get_root_ast_node());
-	free_ast_node(get_root_ast_node());
-	return 0;
-}
-
-
-int yyerror(char *s) {
-	printf("ERROR: %s\n", s);
-
-	return 0;
-}
+//int main() {
+//	yyparse();
+//	print_ast_node(get_root_ast_node());
+//	free_ast_node(get_root_ast_node());
+//	return 0;
+//}
+//
+//
+//int yyerror(char *s) {
+//	printf("ERROR: %s\n", s);
+//
+//	return 0;
+//}
